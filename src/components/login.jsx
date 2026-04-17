@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useContext } from 'react'
 import { SideScreenContext } from './sideScreen.context'
+import { getApiUrl } from '../utils/api'
 
 function Login() {
     const [email, setEmail] = useState("")
@@ -25,7 +26,7 @@ function Login() {
         try {
             setError("")
 
-            const res = await fetch("/api/login", {
+            const res = await fetch(getApiUrl("/api/login"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

@@ -2,6 +2,7 @@ import logo from '../assets/instagram-logo.svg'
 import '../components/authentication.css'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getApiUrl } from '../utils/api'
 
 function Signup() {
     const [email, setEmail] = useState("")
@@ -26,7 +27,7 @@ function Signup() {
             setIsSubmitting(true)
             setError("")
 
-            const response = await fetch("/api/signup", {
+            const response = await fetch(getApiUrl("/api/signup"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
