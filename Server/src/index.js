@@ -4,12 +4,37 @@ const connectDB = require("./connection")
 const authRoutes = require("./routes/auth.routes")
 const authenticateToken = require("../middleware/auth")
 const PORT = process.env.PORT || 65535
-const FRONTEND_URL = process.env.FRONTEND_URL || "*"
+const frontendUrls = (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean)
+
+function isAllowedOrigin(origin) {
+    if (!origin) {
+        return true
+    }
+
+    if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+        return true
+    }
+
+    if (origin.endsWith(".vercel.app")) {
+        return true
+    }
+
+    return frontendUrls.includes(origin)
+}
 
 connectDB()
 
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", FRONTEND_URL)
+    const requestOrigin = req.headers.origin
+
+    if (isAllowedOrigin(requestOrigin)) {
+        res.header("Access-Control-Allow-Origin", requestOrigin || "*")
+        res.header("Vary", "Origin")
+    }
+
     res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
