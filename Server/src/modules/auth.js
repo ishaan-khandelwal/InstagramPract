@@ -1,7 +1,7 @@
 const Auth = require("../Schemas/auth")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me"
+const JWT_SECRET = "efibweugebfcibhefeblbjfbheri7gfrienficfgxefuihegh"
 
 async function login(req, res) {
     try {
