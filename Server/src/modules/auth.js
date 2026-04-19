@@ -1,7 +1,7 @@
 const Auth = require("../Schemas/auth")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-const JWT_SECRET = "efibweugebfcibhefeblbjfbheri7gfrienficfgxefuihegh"
+const { JWT_SECRET } = require("../config")
 
 async function login(req, res) {
     try {
@@ -37,7 +37,7 @@ async function login(req, res) {
         })
     }
     catch (error) {
-        console.log(error)
+        console.error("Login failed:", error.message)
         res.status(500).json({
             message: "Internal server error"
         })
@@ -75,7 +75,7 @@ async function signup(req, res) {
             token
         })
     } catch (error) {
-        console.log(error)
+        console.error("Signup failed:", error.message)
         res.status(500).json({
             message: "Internal server error"
         })

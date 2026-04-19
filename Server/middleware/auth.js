@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me"
+const { JWT_SECRET } = require("../src/config")
 
 
 function authenticateToken(req, res, next) {
@@ -15,7 +15,7 @@ function authenticateToken(req, res, next) {
         req.userId = decodedToken._id
         next()
     } catch (error) {
-        console.log(error)
+        console.error("Token verification failed:", error.message)
         res.status(401).json({
             message: "Invalid or expired token"
         })
