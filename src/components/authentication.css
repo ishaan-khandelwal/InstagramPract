@@ -6,10 +6,10 @@
 
 body {
     min-height: 100vh;
-    background:
+    /* background:
         radial-gradient(circle at top left, rgba(124, 44, 255, 0.14), transparent 30%),
         radial-gradient(circle at bottom right, rgba(255, 106, 26, 0.12), transparent 32%),
-        #07090d;
+        #07090d; */
     color: #f5f7fb;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }

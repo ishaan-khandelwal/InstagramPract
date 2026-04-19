@@ -1,8 +1,15 @@
+import { Outlet } from "react-router-dom";
+import SideHamBurger from "../utils/sideHamBurger";
+import "./dashboard.css";
+
 function Dashboard() {
     return (
-        <>
-            <h1>Dashboard Page</h1>
-        </>
+        <main className="dashboard-shell">
+            <SideHamBurger />
+            <section className="dashboard-content">
+
+            </section>
+        </main>
     )
 }
 
