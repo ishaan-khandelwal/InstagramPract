@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useContext } from 'react'
 import { SideScreenContext } from './sideScreen.context'
 import { getApiUrl } from '../utils/api'
+import { saveAuthToken } from '../utils/auth'
 
 function Login() {
     const [email, setEmail] = useState("")
@@ -44,6 +45,7 @@ function Login() {
                 return;
             }
 
+            saveAuthToken(data.token)
             console.log(data.message || "Login successful")
             setEmail("")
             setPassword("")

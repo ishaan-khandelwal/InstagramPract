@@ -3,6 +3,7 @@ import '../components/authentication.css'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApiUrl } from '../utils/api'
+import { saveAuthToken } from '../utils/auth'
 
 function Signup() {
     const [email, setEmail] = useState("")
@@ -49,7 +50,8 @@ function Signup() {
             setEmail("")
             setPassword("")
             setUsername("")
-            navigate("/login")
+            saveAuthToken(data.token)
+            navigate("/dashboard")
         } catch (fetchError) {
             console.error(fetchError)
             setError("Could not reach the server. Please try again.")

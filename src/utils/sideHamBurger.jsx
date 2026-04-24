@@ -7,8 +7,10 @@ import {
   profile,
   reels,
   search,
+  logout,
 } from "../assets/icons";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { clearAuthToken } from "./auth";
 
 const navItems = [
   { id: "home", label: "Home", icon: home, path: "/dashboard" },
@@ -22,6 +24,13 @@ const navItems = [
 ];
 
 export default function SideHamBurger() {
+  const navigate = useNavigate();
+
+  function handleSignOut() {
+    clearAuthToken();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <>
       <aside className="sidebar-rail" aria-label="Instagram sidebar">
@@ -42,6 +51,12 @@ export default function SideHamBurger() {
             </NavLink>
           ))}
         </nav>
+        <button type="button" className="sidebar-link sidebar-signout" onClick={handleSignOut} aria-label="Sign out">
+          <span className="sidebar-icon-wrap">
+            <img src={logout} alt="" className="sidebar-icon" />
+          </span>
+          <h3 className="sidebar-label">Sign out</h3>
+        </button>
       </aside>
     </>
   );

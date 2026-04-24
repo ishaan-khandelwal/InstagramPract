@@ -1,7 +1,7 @@
 require("dotenv").config()
 const express = require("express");
 const app = express()
-const connectDB = require("./connection")
+const { connectDB, isDbConnected } = require("./connection")
 const authRoutes = require("./routes/auth.routes")
 const authenticateToken = require("../middleware/auth")
 const PORT = process.env.PORT || 65535
@@ -79,7 +79,8 @@ app.use(express.json())
 app.use('/api', authRoutes)
 app.get('/health', (req, res) => {
     res.status(200).json({
-        status: "ok"
+        status: "ok",
+        database: isDbConnected() ? "connected" : "disconnected"
     })
 })
 app.get('/api/verify-token', authenticateToken, (req, res) => {
@@ -152,9 +153,6 @@ app.get('/api/reels', async (req, res) => {
         })
     }
 })
-
-// user route to get all users
-app.use('/api/users', require('./routes/auth.routes'))
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

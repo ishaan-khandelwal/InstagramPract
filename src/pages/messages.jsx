@@ -1,45 +1,69 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import SideHamBurger from '../utils/sideHamBurger'
+import { getApiUrl } from '../utils/api'
 import './messages.css'
 
 function Messages() {
-    const [user, setuser] = useState([])
+    const [users, setUsers] = useState([])
+    const [error, setError] = useState("")
+
     useEffect(() => {
         const getUsers = async () => {
-            const response = await fetch('http://localhost:3000/api/users')
-            const data = await response.json()
-            setuser(data.data)
+            try {
+                const response = await fetch(getApiUrl('/api/users'))
+                const data = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Unable to load users.")
+                }
+
+                setUsers(data.data || [])
+            } catch (fetchError) {
+                setError(fetchError.message || "Unable to load users.")
+            }
         }
+
         getUsers()
     }, [])
-    console.log(user)
-    return (
-        <>
-            <main>
-                <SideHamBurger />
-                <section className="messages-content">
-                    <div style={{ display: 'flex', width: '100%', height: '100%', backgroundColor: 'blue' }}>
-                        <div style={{ width: '25%', backgroundColor: 'green' }}>
-                            {user.map((user) => (
-                                <div key={user._id} className='flex items-center space-x-4 p-2 rounded w-full hover:bg-slate-100 cursor-pointer '>
-                                    <div className='bg-pink-400  text-white p-2 rounded-full flex items-center justify-center'>
-                                        {user.username[0].toUpperCase()}
-                                    </div>
-                                    <div className='flex flex-col w-full'>
-                                        <p className='font-semibold text-sm'>{user.username}</p>
-                                        <p className='text-sm text-slate-600'>Message</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div style={{ width: '75%', backgroundColor: 'red' }}>
-                            chats
-                        </div>
-                    </div>
-                </section>
 
-            </main>
-        </>
+    return (
+        <main className="dashboard-shell">
+            <SideHamBurger />
+            <section className="messages-content">
+                <aside className="messages-list" aria-label="Chats">
+                    <div className="messages-header">
+                        <h1>Messages</h1>
+                        <p>{users.length ? `${users.length} conversations` : "No conversations yet"}</p>
+                    </div>
+
+                    {error ? <p className="messages-error">{error}</p> : null}
+
+                    <div className="chat-list">
+                        {users.map((item) => (
+                            <button type="button" className="chat-row" key={item._id || item.email}>
+                                <span className="chat-avatar">{item.username?.charAt(0)?.toUpperCase() || "U"}</span>
+                                <span className="chat-copy">
+                                    <strong>{item.username || "Unknown user"}</strong>
+                                    <small>{item.email}</small>
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </aside>
+
+                <section className="message-thread" aria-label="Selected chat">
+                    <div className="thread-empty">
+                        <h2>Select a chat</h2>
+                        <p>Choose a conversation from the left to start messaging.</p>
+                    </div>
+
+                    <form className="message-composer">
+                        <input type="text" placeholder="Send a message" />
+                        <button type="submit">Send</button>
+                    </form>
+                </section>
+            </section>
+        </main>
     )
 }
 

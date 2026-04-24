@@ -29,7 +29,7 @@ async function login(req, res) {
             })
         }
 
-        const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "1h" })
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "30d" })
 
         return res.status(200).json({
             message: "Login successful",
@@ -69,7 +69,7 @@ async function signup(req, res) {
         })
         await newuser.save()
 
-        const token = jwt.sign({ _id: newuser._id }, JWT_SECRET, { expiresIn: "1h" })
+        const token = jwt.sign({ _id: newuser._id }, JWT_SECRET, { expiresIn: "30d" })
         return res.status(201).json({
             message: "User created successfully",
             token

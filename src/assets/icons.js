@@ -56,3 +56,8 @@ export const profile = svgToDataUri(
     <path d="M5.2 19.4c1.7-3.1 4.1-4.8 6.8-4.8s5.1 1.7 6.8 4.8" fill="url(#avatarBody)"/>
   </svg>`
 );
+
+export const logout = lineIcon(
+  '<path d="M9 20H6.5A2.5 2.5 0 0 1 4 17.5v-11A2.5 2.5 0 0 1 6.5 4H9"/><path d="M14 8l4 4-4 4"/><path d="M18 12H9"/>',
+  2.1
+);

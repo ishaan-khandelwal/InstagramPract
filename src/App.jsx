@@ -5,6 +5,15 @@ import Dashboard from "./components/dashboard"
 import Reel from "./pages/reel"
 import Messages from "./pages/messages"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { isAuthenticated } from "./utils/auth"
+
+function ProtectedRoute({ children }) {
+  return isAuthenticated() ? children : <Navigate to="/login" replace />
+}
+
+function PublicRoute({ children }) {
+  return isAuthenticated() ? <Navigate to="/dashboard" replace /> : children
+}
 
 function App() {
   return (
@@ -12,13 +21,13 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<SideScreenProvider />}>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/" element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} replace />} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
         </Route>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/reel" element={<Reel />} />
-        <Route path="/messages" element={<Messages />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/reel" element={<ProtectedRoute><Reel /></ProtectedRoute>} />
+        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
 
       </Routes>
     </BrowserRouter>
