@@ -7,6 +7,20 @@ const authenticateToken = require("../middleware/auth")
 const PORT = process.env.PORT || 65535
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 const YOUTUBE_REELS_QUERY = process.env.YOUTUBE_REELS_QUERY || "youtube shorts"
+const FALLBACK_REELS = [
+    { id: "aqz-KE-bpKQ", title: "Big Buck Bunny Short Clip", channelTitle: "Blender Foundation" },
+    { id: "L_jWHffIx5E", title: "Music Video Snippet", channelTitle: "Smash Mouth" },
+    { id: "ysz5S6PUM-U", title: "YouTube API Demo Clip", channelTitle: "YouTube" },
+    { id: "dQw4w9WgXcQ", title: "Classic Viral Clip", channelTitle: "Rick Astley" },
+    { id: "M7lc1UVf-VE", title: "YouTube Player API Demo", channelTitle: "YouTube Developers" },
+    { id: "5qap5aO4i9A", title: "LoFi Background Reel", channelTitle: "Lofi Girl" },
+    { id: "kJQP7kiw5Fk", title: "Top Trending Music Clip", channelTitle: "Luis Fonsi" },
+    { id: "3JZ_D3ELwOQ", title: "Pop Reel Sample", channelTitle: "Mark Ronson" },
+    { id: "RgKAFK5djSk", title: "Short Music Reel", channelTitle: "Wiz Khalifa" },
+    { id: "2Vv-BfVoq4g", title: "Acoustic Reel Mood", channelTitle: "Ed Sheeran" },
+    { id: "fRh_vgS2dFE", title: "Live Performance Reel", channelTitle: "Justin Bieber" },
+    { id: "09R8_2nJtjg", title: "Indie Vibe Reel", channelTitle: "Maroon 5" }
+]
 const frontendUrls = (process.env.FRONTEND_URL || "")
     .split(",")
     .map((url) => url.trim())
@@ -26,6 +40,20 @@ function isAllowedOrigin(origin) {
     }
 
     return frontendUrls.includes(origin)
+}
+
+function getFallbackReelsPage(maxResults, rawPageToken) {
+    const startIndex = Math.max(Number.parseInt(rawPageToken || "0", 10) || 0, 0)
+    const items = FALLBACK_REELS.slice(startIndex, startIndex + maxResults).map((item) => ({
+        ...item,
+        description: "",
+        thumbnail: "",
+        publishedAt: null
+    }))
+    const nextIndex = startIndex + items.length
+    const nextPageToken = nextIndex < FALLBACK_REELS.length ? String(nextIndex) : null
+
+    return { items, nextPageToken }
 }
 
 connectDB()
@@ -61,14 +89,17 @@ app.get('/api/verify-token', authenticateToken, (req, res) => {
     })
 })
 app.get('/api/reels', async (req, res) => {
-    if (!YOUTUBE_API_KEY) {
-        return res.status(500).json({
-            message: "Missing YOUTUBE_API_KEY on the server."
-        })
-    }
-
     const maxResults = Math.min(Number(req.query.maxResults) || 6, 10)
     const query = (req.query.q || YOUTUBE_REELS_QUERY).toString().trim()
+    const pageToken = typeof req.query.pageToken === "string" ? req.query.pageToken.trim() : ""
+
+    if (!YOUTUBE_API_KEY) {
+        const fallback = getFallbackReelsPage(maxResults, pageToken)
+        return res.status(200).json({
+            ...fallback,
+            source: "fallback"
+        })
+    }
     const params = new URLSearchParams({
         key: YOUTUBE_API_KEY,
         part: "snippet",
@@ -82,12 +113,19 @@ app.get('/api/reels', async (req, res) => {
         safeSearch: "moderate"
     })
 
+    if (pageToken) {
+        params.set("pageToken", pageToken)
+    }
+
     try {
         const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`)
         const payload = await response.json()
 
         if (!response.ok) {
-            return res.status(response.status).json({
+            const fallback = getFallbackReelsPage(maxResults, pageToken)
+            return res.status(200).json({
+                ...fallback,
+                source: "fallback",
                 message: payload?.error?.message || "Failed to fetch YouTube reels."
             })
         }
@@ -101,13 +139,22 @@ app.get('/api/reels', async (req, res) => {
             publishedAt: item.snippet?.publishedAt
         })).filter((item) => item.id)
 
-        res.status(200).json({ items })
+        res.status(200).json({
+            items,
+            nextPageToken: payload.nextPageToken || null
+        })
     } catch (error) {
-        res.status(500).json({
+        const fallback = getFallbackReelsPage(maxResults, pageToken)
+        res.status(200).json({
+            ...fallback,
+            source: "fallback",
             message: "Unable to reach YouTube right now."
         })
     }
 })
+
+// user route to get all users
+app.use('/api/users', require('./routes/auth.routes'))
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

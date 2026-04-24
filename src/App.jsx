@@ -3,6 +3,7 @@ import Signup from "./components/signup"
 import { SideScreenProvider } from "./components/sideScreen.context"
 import Dashboard from "./components/dashboard"
 import Reel from "./pages/reel"
+import Messages from "./pages/messages"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 
 function App() {
@@ -17,6 +18,8 @@ function App() {
         </Route>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/reel" element={<Reel />} />
+        <Route path="/messages" element={<Messages />} />
+
       </Routes>
     </BrowserRouter>
   )
