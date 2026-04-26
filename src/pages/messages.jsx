@@ -62,9 +62,9 @@ function Messages() {
                     String(incomingMessage.sender) === String(activeUserId) ||
                     String(incomingMessage.recipient) === String(activeUserId)
                 ) && (
-                    String(incomingMessage.sender) === String(myUserId) ||
-                    String(incomingMessage.recipient) === String(myUserId)
-                )
+                        String(incomingMessage.sender) === String(myUserId) ||
+                        String(incomingMessage.recipient) === String(myUserId)
+                    )
 
                 if (!belongsToActiveChat) {
                     return previousMessages
@@ -200,7 +200,6 @@ function Messages() {
                                 <span className="chat-avatar">{item.username?.charAt(0)?.toUpperCase() || "U"}</span>
                                 <span className="chat-copy">
                                     <strong>{item.username || "Unknown user"}</strong>
-                                    <small>{item.email}</small>
                                 </span>
                             </button>
                         ))}
