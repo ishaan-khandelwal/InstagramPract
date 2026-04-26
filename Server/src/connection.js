@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
+const dns = require("dns");
 const { MONGO_URL, isProduction } = require("./config");
+
+// Force use of Google DNS to resolve MongoDB Atlas SRV records
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 async function connectDB() {
     if (!MONGO_URL || (!MONGO_URL.startsWith("mongodb://") && !MONGO_URL.startsWith("mongodb+srv://"))) {
