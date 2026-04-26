@@ -44,7 +44,6 @@ function Messages() {
                                 <span className="chat-avatar">{item.username?.charAt(0)?.toUpperCase() || "U"}</span>
                                 <span className="chat-copy">
                                     <strong>{item.username || "Unknown user"}</strong>
-                                    <small>{item.email}</small>
                                 </span>
                             </button>
                         ))}
