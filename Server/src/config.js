@@ -3,7 +3,7 @@ const DEFAULT_LOCAL_JWT_SECRET = "81975-88402-92309-06308-88304";
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const MONGO_URL = (process.env.MONGO_URL || (!isProduction ? DEFAULT_LOCAL_MONGO_URI : "")).trim();
+const MONGO_URL = (process.env.MONGO_URL || process.env.MONGO_URI || process.env.MONGODB_URI || (!isProduction ? DEFAULT_LOCAL_MONGO_URI : "")).trim();
 const JWT_SECRET = (process.env.JWT_SECRET || DEFAULT_LOCAL_JWT_SECRET).trim();
 
 module.exports = {

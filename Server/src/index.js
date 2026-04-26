@@ -1,9 +1,15 @@
 require("dotenv").config()
 const express = require("express");
+const http = require("http")
+const { Server } = require("socket.io")
+const jwt = require("jsonwebtoken")
 const app = express()
 const { connectDB, isDbConnected } = require("./connection")
 const authRoutes = require("./routes/auth.routes")
 const authenticateToken = require("../middleware/auth")
+const Auth = require("./Schemas/auth")
+const Message = require("./Schemas/message")
+const { JWT_SECRET } = require("./config")
 const PORT = process.env.PORT || 65535
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 const YOUTUBE_REELS_QUERY = process.env.YOUTUBE_REELS_QUERY || "youtube shorts"
@@ -40,6 +46,10 @@ function isAllowedOrigin(origin) {
     }
 
     return frontendUrls.includes(origin)
+}
+
+function getConversationRoom(userA, userB) {
+    return [String(userA), String(userB)].sort().join(":")
 }
 
 function getFallbackReelsPage(maxResults, rawPageToken) {
@@ -88,6 +98,37 @@ app.get('/api/verify-token', authenticateToken, (req, res) => {
         message: "Token is valid",
         userId: req.userId
     })
+})
+app.get('/api/messages/:userId', authenticateToken, async (req, res) => {
+    try {
+        const otherUserId = req.params.userId
+        const otherUser = await Auth.findById(otherUserId).select("_id")
+
+        if (!otherUser) {
+            return res.status(404).json({
+                message: "User not found"
+            })
+        }
+
+        const messages = await Message.find({
+            $or: [
+                { sender: req.userId, recipient: otherUserId },
+                { sender: otherUserId, recipient: req.userId }
+            ]
+        })
+            .sort({ createdAt: 1 })
+            .limit(100)
+
+        res.status(200).json({
+            status: "success",
+            data: messages
+        })
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message
+        })
+    }
 })
 app.get('/api/reels', async (req, res) => {
     const maxResults = Math.min(Number(req.query.maxResults) || 6, 10)
@@ -154,7 +195,86 @@ app.get('/api/reels', async (req, res) => {
     }
 })
 
-app.listen(PORT, () => {
+const server = http.createServer(app)
+const io = new Server(server, {
+    cors: {
+        origin: (origin, callback) => {
+            if (isAllowedOrigin(origin)) {
+                return callback(null, true)
+            }
+
+            return callback(new Error("Not allowed by CORS"))
+        },
+        methods: ["GET", "POST"]
+    }
+})
+
+io.use(async (socket, next) => {
+    try {
+        const token = socket.handshake.auth?.token
+
+        if (!token) {
+            return next(new Error("Unauthorized"))
+        }
+
+        const decodedToken = jwt.verify(token, JWT_SECRET)
+        const user = await Auth.findById(decodedToken._id).select("_id username email")
+
+        if (!user) {
+            return next(new Error("Unauthorized"))
+        }
+
+        socket.user = user
+        next()
+    } catch {
+        next(new Error("Unauthorized"))
+    }
+})
+
+io.on("connection", (socket) => {
+    const userId = String(socket.user._id)
+    socket.join(userId)
+
+    socket.on("chat:join", ({ recipientId } = {}) => {
+        if (!recipientId) {
+            return
+        }
+
+        socket.join(getConversationRoom(userId, recipientId))
+    })
+
+    socket.on("chat:send", async ({ recipientId, body } = {}, callback) => {
+        try {
+            const trimmedBody = body?.trim()
+
+            if (!recipientId || !trimmedBody) {
+                return callback?.({ ok: false, message: "Message is required." })
+            }
+
+            const recipient = await Auth.findById(recipientId).select("_id")
+
+            if (!recipient) {
+                return callback?.({ ok: false, message: "Recipient not found." })
+            }
+
+            const message = await Message.create({
+                sender: userId,
+                recipient: recipientId,
+                body: trimmedBody
+            })
+            const payload = message.toObject()
+            const room = getConversationRoom(userId, recipientId)
+
+            io.to(room).emit("chat:message", payload)
+            io.to(String(recipientId)).emit("chat:message", payload)
+            callback?.({ ok: true })
+        } catch {
+            callback?.({ ok: false, message: "Unable to send message." })
+        }
+    })
+})
+
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 
 })

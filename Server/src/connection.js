@@ -2,8 +2,9 @@ const mongoose = require("mongoose");
 const { MONGO_URL, isProduction } = require("./config");
 
 async function connectDB() {
-    if (!MONGO_URL) {
-        console.error("Missing MONGO_URL. Set it in the environment before starting the server.");
+    if (!MONGO_URL || (!MONGO_URL.startsWith("mongodb://") && !MONGO_URL.startsWith("mongodb+srv://"))) {
+        console.error("Invalid or missing MONGO_URL. Current value:", MONGO_URL ? "[REDACTED]" : "empty");
+        console.error("Expected connection string to start with 'mongodb://' or 'mongodb+srv://'");
         if (isProduction) {
             process.exit(1);
         }

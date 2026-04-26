@@ -54,6 +54,10 @@
     background: rgba(255, 255, 255, 0.07);
 }
 
+.chat-row.is-active {
+    background: rgba(47, 128, 237, 0.18);
+}
+
 .chat-avatar {
     width: 42px;
     height: 42px;
@@ -90,6 +94,70 @@
     flex-direction: column;
     justify-content: space-between;
     padding: 32px;
+    gap: 18px;
+}
+
+.thread-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.thread-header h2 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+}
+
+.thread-header p {
+    margin: 0;
+    color: rgba(245, 247, 251, 0.55);
+    font-size: 0.86rem;
+}
+
+.thread-messages {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: auto;
+    padding-right: 6px;
+}
+
+.thread-note {
+    margin: auto;
+    color: rgba(245, 247, 251, 0.58);
+    text-align: center;
+}
+
+.message-bubble {
+    width: fit-content;
+    max-width: min(68%, 560px);
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #182331;
+    color: #fff;
+}
+
+.message-bubble.is-mine {
+    align-self: flex-end;
+    background: #2f80ed;
+}
+
+.message-bubble p {
+    margin: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
+.message-bubble time {
+    display: block;
+    margin-top: 5px;
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.72rem;
+    text-align: right;
 }
 
 .thread-empty {
@@ -137,6 +205,12 @@
     color: #fff;
     font-weight: 700;
     cursor: pointer;
+}
+
+.message-composer input:disabled,
+.message-composer button:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
 }
 
 @media (max-width: 760px) {
