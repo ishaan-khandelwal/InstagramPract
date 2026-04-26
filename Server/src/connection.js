@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
-const { MONGO_URI, isProduction } = require("./config");
+const { MONGO_URL, isProduction } = require("./config");
 
 async function connectDB() {
-    if (!MONGO_URI) {
-        console.error("Missing MONGO_URI. Set it in the environment before starting the server.");
+    if (!MONGO_URL) {
+        console.error("Missing MONGO_URL. Set it in the environment before starting the server.");
         if (isProduction) {
             process.exit(1);
         }
@@ -12,7 +12,7 @@ async function connectDB() {
     }
 
     try {
-        await mongoose.connect(MONGO_URI);
+        await mongoose.connect(MONGO_URL);
         console.log("Database connected successfully");
     } catch (error) {
         console.error("Database connection failed:", error.message);
