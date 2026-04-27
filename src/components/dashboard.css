@@ -5,6 +5,54 @@
     color: #f5f7fb;
 }
 
+.dashboard-status {
+    display: flex;
+    flex-direction: row;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 28px;
+}
+
+.dashboard-status-item {
+    width: 76px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: transparent;
+    color: #f5f7fb;
+    cursor: pointer;
+    font: inherit;
+}
+
+.dashboard-status-avatar {
+    height: 72px;
+    width: 72px;
+    border-radius: 50%;
+    border: 3px solid #101720;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    box-shadow: 0 0 0 2px #dc2743;
+    color: #fff;
+    font-weight: 700;
+}
+
+.dashboard-status-name {
+    max-width: 76px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.78rem;
+}
+
+.dashboard-post {
+    width: min(100%, 470px);
+}
+
 .sidebar-rail {
     width: 78px;
     min-height: 100vh;
@@ -148,13 +196,14 @@
 .dashboard-content {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 32px;
 }
 
 .dashboard-placeholder {
-    max-width: 420px;
+    width: min(100%, 520px);
     color: rgba(255, 255, 255, 0.78);
 }
 
@@ -167,4 +216,67 @@
 .dashboard-placeholder p {
     margin: 0;
     line-height: 1.6;
+}
+
+.dashboard-post-card {
+    width: 100%;
+}
+
+.dashboard-post-profile {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dashboard-post-profile-image {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4285f4, #34a853 45%, #fbbc05 70%, #ea4335);
+    border: 2px solid #f5f7fb;
+    color: #fff;
+    font-weight: 800;
+}
+
+.dashboard-post-profile-name {
+    margin: 0;
+    flex: 1;
+    font-weight: 700;
+}
+
+.dashboard-post-profile-options {
+    border: 0;
+    background: transparent;
+    color: #f5f7fb;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.dashboard-post-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(circle at 30% 25%, #ffffff 0 8%, #d8e4ff 9% 18%, #4b5563 19% 100%);
+    color: #111827;
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.dashboard-post-footer {
+    padding-top: 12px;
+}
+
+.dashboard-post-footer-icons {
+    display: flex;
+    gap: 16px;
 }

@@ -23,13 +23,9 @@ const navItems = [
   { id: "profile", label: "Profile", icon: profile, avatar: true, path: "/profile" },
 ];
 
-export default function SideHamBurger() {
-  const navigate = useNavigate();
 
-  function handleSignOut() {
-    clearAuthToken();
-    navigate("/login", { replace: true });
-  }
+
+export default function SideHamBurger() {
 
   return (
     <>
@@ -51,12 +47,7 @@ export default function SideHamBurger() {
             </NavLink>
           ))}
         </nav>
-        <button type="button" className="sidebar-link sidebar-signout" onClick={handleSignOut} aria-label="Sign out">
-          <span className="sidebar-icon-wrap">
-            <img src={logout} alt="" className="sidebar-icon" />
-          </span>
-          <h3 className="sidebar-label">Sign out</h3>
-        </button>
+
       </aside>
     </>
   );

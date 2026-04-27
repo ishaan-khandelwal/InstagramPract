@@ -5,6 +5,20 @@ import { API_BASE_URL, getApiUrl } from '../utils/api'
 import { getAuthToken } from '../utils/auth'
 import './messages.css'
 
+function addMessageOnce(previousMessages, nextMessage) {
+    if (!nextMessage?._id) {
+        return previousMessages
+    }
+
+    const alreadyExists = previousMessages.some((item) => item._id === nextMessage._id)
+
+    if (alreadyExists) {
+        return previousMessages
+    }
+
+    return [...previousMessages, nextMessage]
+}
+
 function Messages() {
     const authToken = useMemo(() => getAuthToken(), [])
     const [users, setUsers] = useState([])
@@ -70,13 +84,7 @@ function Messages() {
                     return previousMessages
                 }
 
-                const alreadyExists = previousMessages.some((item) => item._id === incomingMessage._id)
-
-                if (alreadyExists) {
-                    return previousMessages
-                }
-
-                return [...previousMessages, incomingMessage]
+                return addMessageOnce(previousMessages, incomingMessage)
             })
         })
 
@@ -157,24 +165,47 @@ function Messages() {
     const handleSendMessage = (event) => {
         event.preventDefault()
 
-        if (!selectedUser || !messageBody.trim()) {
+        const trimmedBody = messageBody.trim()
+
+        if (!selectedUser || !trimmedBody) {
             return
         }
 
         setSendError("")
+        const optimisticMessage = {
+            _id: `temp-${Date.now()}`,
+            sender: currentUserId,
+            recipient: selectedUser._id,
+            body: trimmedBody,
+            createdAt: new Date().toISOString(),
+            isPending: true
+        }
+
+        setMessages((previousMessages) => [...previousMessages, optimisticMessage])
+        setMessageBody("")
+
         socketRef.current?.emit(
             "chat:send",
             {
                 recipientId: selectedUser._id,
-                body: messageBody
+                body: trimmedBody
             },
             (response) => {
                 if (!response?.ok) {
                     setSendError(response?.message || "Unable to send message.")
+                    setMessages((previousMessages) => previousMessages.filter((message) => message._id !== optimisticMessage._id))
+                    setMessageBody(trimmedBody)
+                    return
+                }
+
+                if (response.message) {
+                    setMessages((previousMessages) => {
+                        const withoutOptimisticMessage = previousMessages.filter((message) => message._id !== optimisticMessage._id)
+                        return addMessageOnce(withoutOptimisticMessage, response.message)
+                    })
                 }
             }
         )
-        setMessageBody("")
     }
 
     return (
@@ -226,7 +257,7 @@ function Messages() {
                                     const isMine = String(message.sender) === String(currentUserId)
 
                                     return (
-                                        <article className={`message-bubble ${isMine ? "is-mine" : ""}`} key={message._id}>
+                                        <article className={`message-bubble ${isMine ? "is-mine" : ""} ${message.isPending ? "is-pending" : ""}`} key={message._id}>
                                             <p>{message.body}</p>
                                             <time dateTime={message.createdAt}>
                                                 {new Date(message.createdAt).toLocaleTimeString([], {

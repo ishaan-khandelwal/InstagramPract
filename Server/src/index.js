@@ -266,8 +266,9 @@ io.on("connection", (socket) => {
             const room = getConversationRoom(userId, recipientId)
 
             io.to(room).emit("chat:message", payload)
+            io.to(userId).emit("chat:message", payload)
             io.to(String(recipientId)).emit("chat:message", payload)
-            callback?.({ ok: true })
+            callback?.({ ok: true, message: payload })
         } catch {
             callback?.({ ok: false, message: "Unable to send message." })
         }
