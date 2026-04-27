@@ -99,6 +99,27 @@ app.get('/api/verify-token', authenticateToken, (req, res) => {
         userId: req.userId
     })
 })
+app.get('/api/notifications/summary', authenticateToken, async (req, res) => {
+    try {
+        const unreadMessages = await Message.countDocuments({
+            recipient: req.userId,
+            readAt: null
+        })
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                unreadMessages,
+                hasNotifications: unreadMessages > 0
+            }
+        })
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message
+        })
+    }
+})
 app.get('/api/messages/:userId', authenticateToken, async (req, res) => {
     try {
         const otherUserId = req.params.userId
@@ -119,9 +140,45 @@ app.get('/api/messages/:userId', authenticateToken, async (req, res) => {
             .sort({ createdAt: 1 })
             .limit(100)
 
+        await Message.updateMany(
+            {
+                sender: otherUserId,
+                recipient: req.userId,
+                readAt: null
+            },
+            {
+                $set: { readAt: new Date() }
+            }
+        )
+
         res.status(200).json({
             status: "success",
             data: messages
+        })
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message
+        })
+    }
+})
+app.patch('/api/messages/:userId/read', authenticateToken, async (req, res) => {
+    try {
+        const otherUserId = req.params.userId
+
+        await Message.updateMany(
+            {
+                sender: otherUserId,
+                recipient: req.userId,
+                readAt: null
+            },
+            {
+                $set: { readAt: new Date() }
+            }
+        )
+
+        res.status(200).json({
+            status: "success"
         })
     } catch (error) {
         res.status(500).json({

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 import SideHamBurger from '../utils/sideHamBurger'
 import { API_BASE_URL, getApiUrl } from '../utils/api'
@@ -43,6 +43,24 @@ function Messages() {
         currentUserIdRef.current = currentUserId
     }, [currentUserId])
 
+    const markActiveChatAsRead = useCallback(async (userId) => {
+        if (!authToken || !userId) {
+            return
+        }
+
+        try {
+            await fetch(getApiUrl(`/api/messages/${userId}/read`), {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+            window.dispatchEvent(new Event("messages:read"))
+        } catch {
+            window.dispatchEvent(new Event("messages:read"))
+        }
+    }, [authToken])
+
     useEffect(() => {
         if (!authToken) {
             return
@@ -84,6 +102,10 @@ function Messages() {
                     return previousMessages
                 }
 
+                if (String(incomingMessage.sender) === String(activeUserId)) {
+                    markActiveChatAsRead(activeUserId)
+                }
+
                 return addMessageOnce(previousMessages, incomingMessage)
             })
         })
@@ -91,7 +113,7 @@ function Messages() {
         return () => {
             socket.disconnect()
         }
-    }, [authToken])
+    }, [authToken, markActiveChatAsRead])
 
     useEffect(() => {
         const getUsers = async () => {
@@ -145,6 +167,7 @@ function Messages() {
                 }
 
                 setMessages(data.data || [])
+                window.dispatchEvent(new Event("messages:read"))
             } catch (fetchError) {
                 setSendError(fetchError.message || "Unable to load messages.")
             } finally {
