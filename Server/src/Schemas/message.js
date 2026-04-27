@@ -18,6 +18,10 @@ const messageSchema = mongoose.Schema(
             trim: true,
             maxlength: 1000
         },
+        clientId: {
+            type: String,
+            default: null
+        },
         readAt: {
             type: Date,
             default: null

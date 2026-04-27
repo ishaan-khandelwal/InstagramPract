@@ -5,7 +5,7 @@ import { API_BASE_URL, getApiUrl } from '../utils/api'
 import { getAuthToken } from '../utils/auth'
 import './messages.css'
 
-function addMessageOnce(previousMessages, nextMessage) {
+function upsertMessage(previousMessages, nextMessage) {
     if (!nextMessage?._id) {
         return previousMessages
     }
@@ -14,6 +14,27 @@ function addMessageOnce(previousMessages, nextMessage) {
 
     if (alreadyExists) {
         return previousMessages
+    }
+
+    const pendingIndex = previousMessages.findIndex((item) => {
+        if (!item.isPending) {
+            return false
+        }
+
+        if (item.clientId && nextMessage.clientId && item.clientId === nextMessage.clientId) {
+            return true
+        }
+
+        return (
+            String(item.sender) === String(nextMessage.sender) &&
+            String(item.recipient) === String(nextMessage.recipient) &&
+            item.body === nextMessage.body &&
+            Math.abs(new Date(item.createdAt).getTime() - new Date(nextMessage.createdAt).getTime()) < 10000
+        )
+    })
+
+    if (pendingIndex >= 0) {
+        return previousMessages.map((item, index) => index === pendingIndex ? nextMessage : item)
     }
 
     return [...previousMessages, nextMessage]
@@ -106,7 +127,7 @@ function Messages() {
                     markActiveChatAsRead(activeUserId)
                 }
 
-                return addMessageOnce(previousMessages, incomingMessage)
+                return upsertMessage(previousMessages, incomingMessage)
             })
         })
 
@@ -144,39 +165,71 @@ function Messages() {
         getUsers()
     }, [authToken])
 
-    useEffect(() => {
-        const getMessages = async () => {
-            if (!selectedUser || !authToken) {
-                return
-            }
+    const loadSelectedMessages = useCallback(async ({ silent = false } = {}) => {
+        if (!selectedUser || !authToken) {
+            return
+        }
 
+        if (!silent) {
             setIsLoadingMessages(true)
             setSendError("")
-            socketRef.current?.emit("chat:join", { recipientId: selectedUser._id })
+        }
 
-            try {
-                const response = await fetch(getApiUrl(`/api/messages/${selectedUser._id}`), {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`
-                    }
-                })
-                const data = await response.json()
+        socketRef.current?.emit("chat:join", { recipientId: selectedUser._id })
 
-                if (!response.ok) {
-                    throw new Error(data.message || "Unable to load messages.")
+        try {
+            const response = await fetch(getApiUrl(`/api/messages/${selectedUser._id}`), {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
                 }
+            })
+            const data = await response.json()
 
+            if (!response.ok) {
+                throw new Error(data.message || "Unable to load messages.")
+            }
+
+            if (silent) {
+                setMessages((previousMessages) => (data.data || []).reduce(upsertMessage, previousMessages))
+            } else {
                 setMessages(data.data || [])
-                window.dispatchEvent(new Event("messages:read"))
-            } catch (fetchError) {
+            }
+
+            window.dispatchEvent(new Event("messages:read"))
+        } catch (fetchError) {
+            if (!silent) {
                 setSendError(fetchError.message || "Unable to load messages.")
-            } finally {
+            }
+        } finally {
+            if (!silent) {
                 setIsLoadingMessages(false)
             }
         }
-
-        getMessages()
     }, [authToken, selectedUser])
+
+    useEffect(() => {
+        const loadTimer = window.setTimeout(() => {
+            loadSelectedMessages()
+        }, 0)
+
+        return () => {
+            window.clearTimeout(loadTimer)
+        }
+    }, [loadSelectedMessages])
+
+    useEffect(() => {
+        if (!selectedUser) {
+            return
+        }
+
+        const refreshTimer = window.setInterval(() => {
+            loadSelectedMessages({ silent: true })
+        }, 3000)
+
+        return () => {
+            window.clearInterval(refreshTimer)
+        }
+    }, [loadSelectedMessages, selectedUser])
 
     useEffect(() => {
         threadRef.current?.scrollTo({
@@ -195,8 +248,10 @@ function Messages() {
         }
 
         setSendError("")
+        const clientId = `client-${Date.now()}-${Math.random().toString(16).slice(2)}`
         const optimisticMessage = {
-            _id: `temp-${Date.now()}`,
+            _id: clientId,
+            clientId,
             sender: currentUserId,
             recipient: selectedUser._id,
             body: trimmedBody,
@@ -211,7 +266,8 @@ function Messages() {
             "chat:send",
             {
                 recipientId: selectedUser._id,
-                body: trimmedBody
+                body: trimmedBody,
+                clientId
             },
             (response) => {
                 if (!response?.ok) {
@@ -223,8 +279,7 @@ function Messages() {
 
                 if (response.message) {
                     setMessages((previousMessages) => {
-                        const withoutOptimisticMessage = previousMessages.filter((message) => message._id !== optimisticMessage._id)
-                        return addMessageOnce(withoutOptimisticMessage, response.message)
+                        return upsertMessage(previousMessages, response.message)
                     })
                 }
             }

@@ -300,7 +300,7 @@ io.on("connection", (socket) => {
         socket.join(getConversationRoom(userId, recipientId))
     })
 
-    socket.on("chat:send", async ({ recipientId, body } = {}, callback) => {
+    socket.on("chat:send", async ({ recipientId, body, clientId } = {}, callback) => {
         try {
             const trimmedBody = body?.trim()
 
@@ -317,14 +317,13 @@ io.on("connection", (socket) => {
             const message = await Message.create({
                 sender: userId,
                 recipient: recipientId,
-                body: trimmedBody
+                body: trimmedBody,
+                clientId: clientId || null
             })
             const payload = message.toObject()
             const room = getConversationRoom(userId, recipientId)
 
-            io.to(room).emit("chat:message", payload)
-            io.to(userId).emit("chat:message", payload)
-            io.to(String(recipientId)).emit("chat:message", payload)
+            io.to(room).to(userId).to(String(recipientId)).emit("chat:message", payload)
             callback?.({ ok: true, message: payload })
         } catch {
             callback?.({ ok: false, message: "Unable to send message." })
