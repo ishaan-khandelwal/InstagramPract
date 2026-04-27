@@ -1,6 +1,9 @@
 .dashboard-shell {
+    --sidebar-width: 78px;
     min-height: 100vh;
     display: flex;
+    padding-left: var(--sidebar-width);
+    box-sizing: border-box;
     background: #0b1016;
     color: #f5f7fb;
 }
@@ -54,15 +57,19 @@
 }
 
 .sidebar-rail {
-    width: 78px;
-    min-height: 100vh;
+    width: var(--sidebar-width);
+    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     position: fixed;
     top: 0;
+    left: 0;
+    z-index: 20;
     align-items: center;
     justify-content: space-between;
     padding: 18px 0 28px;
+    box-sizing: border-box;
     background: #090d13;
     border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
