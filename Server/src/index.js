@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken")
 const app = express()
 const { connectDB, isDbConnected } = require("./connection")
 const authRoutes = require("./routes/auth.routes")
+const postRoutes = require("./routes/post.routes")
 const authenticateToken = require("../middleware/auth")
 const Auth = require("./Schemas/auth")
 const Message = require("./Schemas/message")
@@ -87,6 +88,7 @@ app.use((req, res, next) => {
 })
 app.use(express.json())
 app.use('/api', authRoutes)
+app.use('/api/posts', postRoutes)
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: "ok",
